@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Wordify</title>
+<style>
+:root{--bg:#f3f5fb;--card:#fff;--tx:#1b2037;--mut:#6b7394;--a:#2b5cff;--b:#7c4dff;--ln:#e3e7f3;--sh:0 4px 18px #1b20371a}
+[data-t=dark]{--bg:#0e1120;--card:#171b33;--tx:#eef0ff;--mut:#9aa0c8;--ln:#2a2f55;--sh:0 4px 18px #0008}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow-x:hidden;background:var(--bg);color:var(--tx);font:16px -apple-system,system-ui,sans-serif}
+.view{position:fixed;inset:0;display:none;flex-direction:column;padding-top:env(safe-area-inset-top)}.view.on{display:flex}
+header{display:flex;align-items:center;gap:8px;padding:12px 14px}h1{margin:0;font-size:1.4em;flex:1;background:linear-gradient(135deg,var(--a),var(--b));-webkit-background-clip:text;color:transparent}
+button,select{font:inherit;color:var(--tx)}
+.ib{background:var(--card);border:1px solid var(--ln);border-radius:12px;min-width:40px;height:40px;padding:0 10px;cursor:pointer}
+.ib.on{background:var(--a);color:#fff;border-color:var(--a)}
+.scroll{flex:1;overflow-y:auto;padding:0 14px 100px}
+input[type=search],.in{width:100%;padding:12px 14px;border-radius:14px;border:1px solid var(--ln);background:var(--card);color:var(--tx);font:inherit;margin:6px 0}
+h3{margin:18px 2px 8px;font-size:.85em;color:var(--mut);text-transform:uppercase;letter-spacing:.06em}
+.card{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:16px;padding:14px;margin:8px 0;box-shadow:var(--sh)}
+.card .ico{width:42px;height:52px;border-radius:8px;background:linear-gradient(135deg,var(--a),var(--b));color:#fff;display:grid;place-items:center;font-size:.7em;font-weight:700}
+.card .m{flex:1;min-width:0}.card b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.card small{color:var(--mut)}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--card);border-top:1px solid var(--ln);padding:6px 0 calc(6px + env(safe-area-inset-bottom))}
+nav button{flex:1;background:none;border:0;padding:8px;color:var(--mut)}nav button.on{color:var(--a);font-weight:700}
+#fab{position:fixed;right:18px;bottom:calc(76px + env(safe-area-inset-bottom));width:58px;height:58px;border-radius:50%;border:0;background:linear-gradient(135deg,var(--a),var(--b));color:#fff;font-size:2em;box-shadow:var(--sh)}
+#title{flex:1;min-width:0;border:0;background:none;font:600 1.05em inherit;color:var(--tx);padding:8px}
+#sv{font-size:.75em;color:var(--mut);white-space:nowrap}
+#wrap{flex:1;overflow:auto;background:var(--bg);padding:8px}
+#sheetbox{margin:0 auto;position:relative;width:794px}
+#page{width:794px;min-height:1123px;padding:96px;background:#fff;color:#111;box-shadow:var(--sh);outline:0;line-height:1.5;font-family:Georgia,serif;font-size:12pt;word-wrap:break-word;overflow-wrap:anywhere}
+#page table{border-collapse:collapse;width:100%}#page td,#page th{border:1px solid #888;padding:6px;min-width:30px}
+#page img{max-width:100%}#page .pb{border-top:2px dashed #aaa;margin:20px 0;page-break-after:always;height:0}
+.pn{position:absolute;right:48px;font:11px sans-serif;color:#999;pointer-events:none}
+#tabs,#tools{display:flex;gap:6px;overflow-x:auto;padding:6px 10px;background:var(--card);border-top:1px solid var(--ln);scrollbar-width:none}
+#tabs{padding-bottom:2px;border-top:1px solid var(--ln)}#tools{padding-bottom:calc(8px + env(safe-area-inset-bottom))}
+#tabs button{background:none;border:0;padding:6px 12px;color:var(--mut);border-radius:10px}#tabs button.on{background:var(--a);color:#fff}
+#tools button,#tools select{flex:none;min-width:42px;height:40px;border-radius:10px;border:1px solid var(--ln);background:var(--bg);padding:0 10px}
+#tools input[type=color]{flex:none;width:42px;height:40px;border:1px solid var(--ln);border-radius:10px;padding:2px;background:var(--bg)}
+#st{font-size:.75em;color:var(--mut);padding:4px 14px;display:flex;justify-content:space-between;background:var(--card)}
+.focus header,.focus #tabs,.focus #tools,.focus #st{display:none}
+#sheet{position:fixed;inset:0;background:#0006;display:none;align-items:flex-end;z-index:9}#sheet.on{display:flex}
+#sheet>div{background:var(--card);width:100%;max-height:75vh;overflow:auto;border-radius:22px 22px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom))}
+#sheet button.row{display:block;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--ln);padding:14px 4px}
+#sheet button.red{color:#e5484d}
+#toast{position:fixed;left:50%;top:calc(14px + env(safe-area-inset-top));transform:translateX(-50%);background:#111;color:#fff;padding:10px 16px;border-radius:12px;opacity:0;transition:.3s;z-index:20;pointer-events:none;max-width:90%}#toast.on{opacity:1}
+.set{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--card);padding:12px 14px;border-radius:14px;margin:8px 0}
+@media print{body *{visibility:hidden}#page,#page *{visibility:visible}#page{position:absolute;left:0;top:0;box-shadow:none;zoom:1!important}}
+</style></head><body>
+
+<div id="home" class="view on">
+ <header><h1>📝 Wordify</h1><button class="ib" id="impBtn">⤓ Import</button></header>
+ <div class="scroll"><input type="search" id="q" placeholder="Search documents">
+  <select id="sort" class="in"><option value="modified">Sort: date modified</option><option value="created">Sort: date created</option><option value="name">Sort: name</option></select>
+  <div id="recentBox"><h3>Recent</h3><div id="recent"></div></div><h3>My Documents</h3><div id="list"></div></div>
+ <button id="fab">+</button>
+</div>
+
+<div id="ed" class="view">
+ <header><button class="ib" id="back">←</button><input id="title" aria-label="Title"><span id="sv">Saved</span><button class="ib" id="more">⋯</button></header>
+ <div id="wrap"><div id="sheetbox"><div id="page" contenteditable="true" spellcheck="true"></div></div></div>
+ <div id="st"><span id="cnt"></span><span id="pg"></span></div>
+ <div id="tabs"><button data-p="fmt" class="on">Home</button><button data-p="par">Paragraph</button><button data-p="ins">Insert</button><button data-p="tl">Tools</button></div>
+ <div id="tools"></div>
+</div>
+
+<div id="set" class="view"><header><h1>Settings</h1></header><div class="scroll" id="setBody"></div></div>
+<nav id="nav"><button data-v="home" class="on">🏠 Home</button><button data-v="recent">🕘 Recent</button><button data-v="set">⚙️ Settings</button></nav>
+<div id="sheet"><div id="sheetIn"></div></div><div id="toast"></div>
+<input type="file" id="imgIn" accept="image/*" hidden><input type="file" id="fileIn" accept=".docx,.txt,.html,.htm" hidden>
+
+<script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html-docx-js@0.3.1/dist/html-docx.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let toastT;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),2400)}
+/* ---- settings (localStorage) ---- */
+const defS={theme:'system',font:'Georgia',size:'12pt',lh:'1.5',autosave:true,page:'A4'};
+let S={...defS,...JSON.parse(localStorage.getItem('wf_set')||'{}')};
+const saveS=()=>localStorage.setItem('wf_set',JSON.stringify(S));
+function applyTheme(){const d=S.theme==='dark'||(S.theme==='system'&&matchMedia('(prefers-color-scheme:dark)').matches);document.documentElement.dataset.t=d?'dark':'light'}
+applyTheme();matchMedia('(prefers-color-scheme:dark)').addEventListener('change',applyTheme);
+/* ---- IndexedDB ---- */
+let db;const dbp=new Promise((res,rej)=>{const r=indexedDB.open('wordify',1);r.onupgradeneeded=()=>r.result.createObjectStore('docs',{keyPath:'id'});r.onsuccess=()=>{db=r.result;res()};r.onerror=()=>rej(r.error)});
+const tx=(m,f)=>new Promise((res,rej)=>{const t=db.transaction('docs',m),s=t.objectStore('docs'),r=f(s);t.oncomplete=()=>res(r.result);t.onerror=()=>rej(t.error)});
+const dbAll=()=>tx('readonly',s=>s.getAll()),dbPut=d=>tx('readwrite',s=>s.put(d)),dbDel=id=>tx('readwrite',s=>s.delete(id)),dbGet=id=>tx('readonly',s=>s.get(id));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+/* ---- templates ---- */
+const T={
+'Blank Document':'<p><br></p>',
+'School Assignment':'<p>Name: ________ &nbsp; Section: ________</p><p>Subject: ________ &nbsp; Date: ________</p><h1>Assignment Title</h1><h2>Introduction</h2><p>Write your introduction here.</p><h2>Body</h2><p>Write your answers here.</p><h2>Conclusion</h2><p>Summarize here.</p>',
+'Research Paper':'<h1 style="text-align:center">Title of the Paper</h1><p style="text-align:center">Author · Institution · Date</p><h2>Abstract</h2><p>Summary of the study.</p><h2>1. Introduction</h2><p>Background and problem.</p><h2>2. Methodology</h2><p>How the study was done.</p><h2>3. Results</h2><p>Findings.</p><h2>4. Discussion</h2><p>Interpretation.</p><h2>References</h2><ol><li>Author. (Year). Title.</li></ol>',
+'Lesson Plan':'<h1>Lesson Plan</h1><p>Subject/Grade: ________ &nbsp; Date: ________</p><h2>I. Objectives</h2><ul><li>Objective 1</li></ul><h2>II. Subject Matter</h2><p>Topic, materials.</p><h2>III. Procedure</h2><ol><li>Engage</li><li>Explore</li><li>Explain</li><li>Elaborate</li><li>Evaluate</li></ol><h2>IV. Assignment</h2><p>…</p>',
+'Resume':'<h1 style="text-align:center">Your Name</h1><p style="text-align:center">email · phone · address</p><h2>Objective</h2><p>One-line goal.</p><h2>Experience</h2><p><b>Job Title</b>, Company (Year–Year)</p><ul><li>Achievement</li></ul><h2>Education</h2><p><b>Degree</b>, School (Year)</p><h2>Skills</h2><ul><li>Skill</li></ul>',
+'Business Letter':'<p>Your Company<br>Address<br>Date</p><p>Recipient Name<br>Company<br>Address</p><p>Dear Mr./Ms. ________,</p><p>Opening paragraph.</p><p>Body paragraph.</p><p>Closing paragraph.</p><p>Sincerely,<br><br>Your Name</p>',
+'Formal Letter':'<p style="text-align:right">Your Address<br>Date</p><p>The Recipient<br>Address</p><p><b>Subject: ________</b></p><p>Respected Sir/Madam,</p><p>Body of the letter.</p><p>Yours faithfully,<br><br>Your Name</p>',
+'Meeting Minutes':'<h1>Meeting Minutes</h1><p>Date: ____ Time: ____ Venue: ____</p><h2>Attendees</h2><ul><li>Name</li></ul><h2>Agenda</h2><ol><li>Item</li></ol><h2>Discussion</h2><p>…</p><h2>Action Items</h2><table><tr><th>Task</th><th>Owner</th><th>Due</th></tr><tr><td> </td><td> </td><td> </td></tr></table>',
+'Daily Journal':'<h1>Daily Journal</h1><p>Date: ________</p><h2>Today I felt…</h2><p>…</p><h2>Highlights</h2><ul><li>…</li></ul><h2>Grateful for</h2><p>…</p>',
+'Report':'<h1 style="text-align:center">Report Title</h1><p style="text-align:center">Prepared by ________ · Date</p><h2>Executive Summary</h2><p>…</p><h2>Findings</h2><p>…</p><h2>Recommendations</h2><ol><li>…</li></ol><h2>Conclusion</h2><p>…</p>'};
+/* ---- navigation / home ---- */
+let cur=null,view='home';
+function go(v){view=v;$$('.view').forEach(e=>e.classList.remove('on'));$(v==='recent'?'#home':'#'+v).classList.add('on');
+ $$('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));$('#nav').style.display=v==='ed'?'none':'flex';$('#fab').style.display=v==='set'?'none':'block';
+ if(v==='home'||v==='recent')renderHome();if(v==='set')renderSet()}
+$$('#nav button').forEach(b=>b.onclick=()=>go(b.dataset.v));
+const fmt=t=>new Date(t).toLocaleString([], {dateStyle:'medium',timeStyle:'short'});
+const card=d=>`<div class="card" data-id="${d.id}"><div class="ico">DOC</div><div class="m"><b>${esc(d.name)}</b><small>${fmt(d.modified)} · .docx/.pdf/.txt/.html</small></div><button class="ib" data-m="${d.id}">⋯</button></div>`;
+async function renderHome(){const q=$('#q').value.toLowerCase(),k=$('#sort').value;let all=await dbAll();
+ const by=(a,b)=>k==='name'?a.name.localeCompare(b.name):b[k]-a[k];
+ const f=all.filter(d=>d.name.toLowerCase().includes(q)||d.html.replace(/<[^>]+>/g,' ').toLowerCase().includes(q));
+ $('#recent').innerHTML=[...f].sort((a,b)=>b.modified-a.modified).slice(0,3).map(card).join('')||'<small>No documents yet. Tap +</small>';
+ $('#recentBox').style.display=view==='recent'?'block':'block';$('#list').parentElement.querySelector('h3:nth-of-type(2)').style.display=view==='recent'?'none':'block';
+ $('#list').innerHTML=view==='recent'?'':[...f].sort(by).map(card).join('')}
+['#q','#sort'].forEach(s=>$(s).oninput=renderHome);
+document.addEventListener('click',e=>{const m=e.target.closest('[data-m]');if(m){e.stopPropagation();return docMenu(m.dataset.m)}
+ const c=e.target.closest('.card[data-id]');if(c)openDoc(c.dataset.id)});
+function sheet(title,items){const h=`<b>${esc(title)}</b>`+items.map((it,i)=>`<button class="row ${it[2]||''}" data-i="${i}">${it[0]}</button>`).join('');$('#sheetIn').innerHTML=h;$('#sheet').classList.add('on');
+ $$('#sheetIn button').forEach(b=>b.onclick=()=>{$('#sheet').classList.remove('on');items[b.dataset.i][1]()})}
+$('#sheet').onclick=e=>e.target.id==='sheet'&&$('#sheet').classList.remove('on');
+async function docMenu(id){const d=await dbGet(id);sheet(d.name,[['Open',()=>openDoc(id)],['Rename',async()=>{const n=prompt('Rename',d.name);if(n&&n.trim()){d.name=n.trim();d.modified=Date.now();await dbPut(d);renderHome();toast('Renamed')}}],
+ ['Duplicate',async()=>{await dbPut({...d,id:uid(),name:d.name+' (copy)',created:Date.now(),modified:Date.now()});renderHome();toast('Duplicated')}],
+ ['Delete',async()=>{if(confirm('Delete "'+d.name+'"? This cannot be undone.')){await dbDel(id);renderHome();toast('Deleted')}},'red']])}
+$('#fab').onclick=()=>sheet('New document',Object.keys(T).map(n=>[n,()=>newDoc(n)]));
+async function newDoc(tpl,html,name){const d={id:uid(),name:name||(tpl==='Blank Document'?'Untitled':tpl),html:html||T[tpl],created:Date.now(),modified:Date.now()};await dbPut(d);openDoc(d.id)}
+/* ---- editor ---- */
+const P=$('#page');let dirty=false,saveT,zoom=1;
+async function openDoc(id){cur=await dbGet(id);if(!cur)return toast('Document not found');localStorage.setItem('wf_last',id);
+ P.innerHTML=cur.html;$('#title').value=cur.name;styleDoc();go('ed');fit();stats();$('#sv').textContent='Saved';P.focus()}
+function styleDoc(){P.style.fontFamily=cur.font||S.font;P.style.fontSize=cur.size||S.size;P.style.lineHeight=cur.lh||S.lh}
+function fit(){const w=$('#wrap').clientWidth-16;const z=Math.min(1,w/794)*zoom;$('#sheetbox').style.zoom=z}
+addEventListener('resize',()=>view==='ed'&&fit());
+async function save(){if(!cur)return;cur.html=P.innerHTML;cur.name=$('#title').value.trim()||'Untitled';cur.modified=Date.now();
+ try{await dbPut(cur);dirty=false;$('#sv').textContent='Saved ✓'}catch(e){$('#sv').textContent='Save failed';toast('Could not save: '+e.message)}}
+function changed(){dirty=true;stats();if(S.autosave){$('#sv').textContent='Saving…';clearTimeout(saveT);saveT=setTimeout(save,700)}else $('#sv').textContent='Unsaved'}
+P.addEventListener('input',changed);$('#title').addEventListener('input',changed);
+addEventListener('pagehide',()=>dirty&&save());document.addEventListener('visibilitychange',()=>document.hidden&&dirty&&save());
+function stats(){const t=P.innerText.trim(),w=t?t.split(/\s+/).length:0;$('#cnt').textContent=`${w} words · ${P.innerText.replace(/\n/g,'').length} chars`;
+ const pages=Math.max(1,Math.ceil((P.scrollHeight)/1123));P.style.minHeight=pages*1123+'px';$$('.pn').forEach(e=>e.remove());
+ for(let i=1;i<=pages;i++){const n=document.createElement('div');n.className='pn';n.textContent=i+' / '+pages;n.style.top=(i*1123-44)+'px';$('#sheetbox').appendChild(n)}$('#pg').textContent=pages+(pages>1?' pages':' page')}
+$('#back').onclick=async()=>{await save();cur=null;go('home')};
+const ex=(c,v)=>{P.focus();document.execCommand(c,false,v);changed()};
+function sizePt(pt){P.focus();document.execCommand('fontSize',false,7);$$('#page font[size="7"]').forEach(f=>{const s=document.createElement('span');s.style.fontSize=pt+'pt';s.innerHTML=f.innerHTML;f.replaceWith(s)});changed()}
+function wrapSel(tag){const s=getSelection();if(!s.rangeCount||s.isCollapsed)return toast('Select text first');ex('insertHTML',`<${tag}>${esc(s.toString())}</${tag}>`)}
+const lh=v=>{P.style.lineHeight=v;cur.lh=v;changed()};
+const sp=v=>{$$('#page p,#page li,#page h1,#page h2,#page h3').forEach(e=>e.style.marginBottom=v);changed()};
+const tabs={
+fmt:()=>`<button data-c="bold"><b>B</b></button><button data-c="italic"><i>I</i></button><button data-c="underline"><u>U</u></button><button data-c="strikeThrough"><s>S</s></button>
+<select id="ff"><option>Georgia</option><option>Arial</option><option>Times New Roman</option><option>Courier New</option><option>Verdana</option><option>Trebuchet MS</option></select>
+<select id="fs"><option value="">Size</option>${[8,10,11,12,14,16,18,24,32,48].map(n=>`<option>${n}</option>`).join('')}</select>
+<input type="color" id="fc" value="#000000" title="Text color"><input type="color" id="hc" value="#ffff00" title="Highlight">
+<select id="hd"><option value="p">Normal</option><option value="h1">Heading 1</option><option value="h2">Heading 2</option><option value="h3">Subheading</option></select>
+<button data-c="superscript">x²</button><button data-c="subscript">x₂</button><button data-c="removeFormat">Clear</button><button data-c="undo">↶</button><button data-c="redo">↷</button>`,
+par:()=>`<button data-c="justifyLeft">⬅</button><button data-c="justifyCenter">↔</button><button data-c="justifyRight">➡</button><button data-c="justifyFull">☰</button>
+<button data-c="insertUnorderedList">• List</button><button data-c="insertOrderedList">1. List</button><button data-c="outdent">⇤</button><button data-c="indent">⇥</button>
+<select id="ls"><option value="">Line spacing</option><option>1</option><option>1.15</option><option>1.5</option><option>2</option><option>2.5</option></select>
+<select id="ps"><option value="">Paragraph spacing</option><option value="0">0</option><option value="6pt">6 pt</option><option value="12pt">12 pt</option><option value="24pt">24 pt</option></select>`,
+ins:()=>`<button id="iTb">▦ Table</button><button id="iImg">🖼 Image</button><button id="iLk">🔗 Link</button><button id="iDt">📅 Date/Time</button><button id="iHr">― Line</button><button id="iPb">⤓ Page break</button><button id="iBox">▢ Box</button>`,
+tl:()=>`<button id="tFind">🔍 Find/Replace</button><button id="tSel">Select all</button><button id="tCut">Cut</button><button id="tCopy">Copy</button><button id="tPaste">Paste</button><button id="tOut">☷ Outline</button><button id="tZi">＋ Zoom</button><button id="tZo">－ Zoom</button><button id="tFoc">Focus</button><button id="tInfo">ⓘ Info</button><button id="tPr">🖨 Print</button><button id="tEx">⤒ Export/Share</button>`};
+function showTab(p){$$('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.p===p));const t=$('#tools');t.innerHTML=tabs[p]();
+ t.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>ex(b.dataset.c));
+ const on=(id,f)=>{const e=$('#'+id);if(e)e.onchange=()=>f(e.value)},click=(id,f)=>{const e=$('#'+id);if(e)e.onclick=f};
+ on('ff',v=>{cur.font=v;P.style.fontFamily=v;changed()});on('fs',v=>v&&sizePt(v));on('fc',v=>ex('foreColor',v));on('hc',v=>ex('hiliteColor',v));on('hd',v=>ex('formatBlock',v));on('ls',v=>v&&lh(v));on('ps',v=>v!==''&&sp(v));
+ click('iTb',()=>{const r=+prompt('Rows',3),c=+prompt('Columns',3);if(!(r>0&&c>0&&r<=50&&c<=12))return toast('Enter 1–50 rows and 1–12 columns');
+  ex('insertHTML','<table>'+('<tr>'+'<td><br></td>'.repeat(c)+'</tr>').repeat(r)+'</table><p><br></p>')});
+ click('iImg',()=>$('#imgIn').click());
+ click('iLk',()=>{const u=prompt('Link URL','https://');if(!u)return;if(getSelection().isCollapsed)ex('insertHTML',`<a href="${esc(u)}">${esc(u)}</a>`);else ex('createLink',u)});
+ click('iDt',()=>ex('insertText',new Date().toLocaleString()));click('iHr',()=>ex('insertHorizontalRule'));
+ click('iPb',()=>ex('insertHTML','<div class="pb"></div><p><br></p>'));
+ click('iBox',()=>ex('insertHTML','<div style="border:2px solid #2b5cff;border-radius:12px;padding:12px;margin:8px 0">Box text</div><p><br></p>'));
+ click('tFind',findUI);click('tSel',()=>{P.focus();document.execCommand('selectAll')});click('tCut',()=>ex('cut'));click('tCopy',()=>{P.focus();document.execCommand('copy');toast('Copied')});
+ click('tPaste',async()=>{try{ex('insertText',await navigator.clipboard.readText())}catch{toast('Paste blocked by browser. Long-press in the page and choose Paste.')}});
+ click('tOut',outline);click('tZi',()=>{zoom=Math.min(2,zoom+.15);fit()});click('tZo',()=>{zoom=Math.max(.4,zoom-.15);fit()});
+ click('tFoc',()=>{$('#ed').classList.add('focus');toast('Focus mode: tap ⊡ to exit');const b=document.createElement('button');b.className='ib';b.id='fx';b.textContent='⊡';b.style.cssText='position:fixed;top:calc(8px + env(safe-area-inset-top));right:8px;z-index:8';b.onclick=()=>{$('#ed').classList.remove('focus');b.remove()};document.body.appendChild(b)});
+ click('tInfo',info);click('tPr',()=>window.print());click('tEx',exportMenu)}
+$$('#tabs button').forEach(b=>b.onclick=()=>showTab(b.dataset.p));
+$('#tools').addEventListener('pointerdown',e=>{if(!e.target.matches('select,input'))e.preventDefault()});
+$('#imgIn').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{P.focus();document.execCommand('insertHTML',false,`<img src="${r.result}">`);changed()};r.onerror=()=>toast('Could not read image');r.readAsDataURL(f);e.target.value=''};
+/* ---- tools ---- */
+function findUI(){$('#sheetIn').innerHTML='<b>Find & Replace</b><input class="in" id="fi" placeholder="Find"><input class="in" id="ri" placeholder="Replace with"><button class="row" id="fN">Find next</button><button class="row" id="fA">Replace all</button><small id="fR"></small>';$('#sheet').classList.add('on');
+ $('#fN').onclick=()=>{$('#sheet').classList.remove('on');P.focus();if(!window.find($('#fi').value,false,false,true))toast('Not found')};
+ $('#fA').onclick=()=>{const f=$('#fi').value;if(!f)return;let n=0;const w=document.createTreeWalker(P,NodeFilter.SHOW_TEXT),a=[];while(w.nextNode())a.push(w.currentNode);
+  a.forEach(t=>{const parts=t.nodeValue.split(f);if(parts.length>1){n+=parts.length-1;t.nodeValue=parts.join($('#ri').value)}});$('#fR').textContent=n+' replaced';if(n)changed()}}
+function outline(){const h=$$('#page h1,#page h2,#page h3');if(!h.length)return toast('No headings yet. Use the Normal/Heading menu.');
+ sheet('Outline',h.map(x=>[`<span style="padding-left:${(+x.tagName[1]-1)*16}px">${esc(x.innerText)}</span>`,()=>x.scrollIntoView({behavior:'smooth',block:'start'})]))}
+function info(){const t=P.innerText.trim(),w=t?t.split(/\s+/).length:0;sheet('Document info',[[`Name: ${esc(cur.name)}`,()=>{}],[`Words: ${w} · Characters: ${t.length}`,()=>{}],[`Reading time: ~${Math.max(1,Math.round(w/200))} min`,()=>{}],[`Created: ${fmt(cur.created)}`,()=>{}],[`Modified: ${fmt(cur.modified)}`,()=>{}],[`Page size: ${S.page} (A4 layout)`,()=>{}]])}
+/* ---- export / import ---- */
+const dl=(blob,name)=>{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000)};
+const docHtml=()=>`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${esc(cur.name)}</title><style>body{font-family:${P.style.fontFamily};font-size:${P.style.fontSize};line-height:${P.style.lineHeight}}table{border-collapse:collapse}td,th{border:1px solid #888;padding:6px}img{max-width:100%}</style></head><body>${P.innerHTML.replace(/<div class="pb"><\/div>/g,'<br clear=all style="page-break-before:always">')}</body></html>`;
+async function build(kind){await save();const n=cur.name.replace(/[\\/:*?"<>|]/g,'_');
+ if(kind==='txt')return[new Blob([P.innerText],{type:'text/plain'}),n+'.txt'];
+ if(kind==='html')return[new Blob([docHtml()],{type:'text/html'}),n+'.html'];
+ if(kind==='docx'){if(!window.htmlDocx)throw Error('DOCX library not loaded (needs internet once).');return[htmlDocx.asBlob(docHtml()),n+'.docx']}
+ if(kind==='pdf'){if(!window.html2pdf)throw Error('PDF library not loaded (needs internet once).');const el=document.createElement('div');el.style.cssText=`width:700px;font-family:${P.style.fontFamily};font-size:${P.style.fontSize};line-height:${P.style.lineHeight};color:#000;background:#fff`;el.innerHTML=P.innerHTML.replace(/class="pb"/g,'style="page-break-after:always"');
+  const b=await html2pdf().set({margin:15,image:{type:'jpeg',quality:.95},html2canvas:{scale:2},jsPDF:{unit:'mm',format:'a4'}}).from(el).outputPdf('blob');return[b,n+'.pdf']}}
+async function doExport(kind,share){try{toast('Preparing '+kind.toUpperCase()+'…');const[b,name]=await build(kind);
+ if(share){const f=new File([b],name,{type:b.type});if(navigator.canShare&&navigator.canShare({files:[f]}))await navigator.share({files:[f],title:cur.name});else{dl(b,name);toast('Sharing not supported here. Downloaded instead.')}}
+ else{dl(b,name);toast(kind.toUpperCase()+' exported')}}catch(e){if(e.name!=='AbortError')toast('Export failed: '+e.message)}}
+function exportMenu(){sheet('Export / Share',[['DOCX (Word)',()=>doExport('docx')],['PDF',()=>doExport('pdf')],['TXT (plain, formatting lost)',()=>doExport('txt')],['HTML',()=>doExport('html')],['Share as DOCX…',()=>doExport('docx',true)],['Share as PDF…',()=>doExport('pdf',true)]])}
+$('#more').onclick=()=>sheet('Document',[['Export / Share',exportMenu],['Find & Replace',findUI],['Document info',info],['Save now',async()=>{await save();toast('Saved')}]]);
+$('#impBtn').onclick=()=>$('#fileIn').click();
+$('#fileIn').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;const ext=f.name.split('.').pop().toLowerCase(),name=f.name.replace(/\.[^.]+$/,'');
+ try{let html;if(ext==='txt')html=(await f.text()).split(/\n/).map(l=>`<p>${esc(l)||'<br>'}</p>`).join('');
+  else if(ext==='html'||ext==='htm'){const d=new DOMParser().parseFromString(await f.text(),'text/html');d.querySelectorAll('script,style,iframe').forEach(x=>x.remove());html=d.body.innerHTML}
+  else if(ext==='docx'){if(!window.mammoth)throw Error('DOCX library not loaded (needs internet once).');html=(await mammoth.convertToHtml({arrayBuffer:await f.arrayBuffer()})).value}
+  else throw Error('Unsupported file type. Use DOCX, TXT or HTML.');
+  await newDoc('',html||'<p><br></p>',name);toast('Imported '+f.name)}catch(er){toast('Import failed: '+er.message)}};
+/* ---- settings ---- */
+function renderSet(){const o=(arr,v)=>arr.map(x=>`<option ${x==v?'selected':''}>${x}</option>`).join('');
+ $('#setBody').innerHTML=`<div class="set">Theme<select id="sTh">${o(['system','light','dark'],S.theme)}</select></div>
+<div class="set">Default font<select id="sF">${o(['Georgia','Arial','Times New Roman','Courier New','Verdana'],S.font)}</select></div>
+<div class="set">Default size<select id="sS">${o(['10pt','11pt','12pt','14pt','16pt'],S.size)}</select></div>
+<div class="set">Default line spacing<select id="sL">${o(['1','1.15','1.5','2'],S.lh)}</select></div>
+<div class="set">Page size<select id="sP"><option>A4</option></select></div>
+<div class="set">Autosave<select id="sA"><option value="1" ${S.autosave?'selected':''}>On</option><option value="0" ${S.autosave?'':'selected'}>Off</option></select></div>
+<div class="set"><span id="stor">Storage: …</span></div>
+<button class="ib" style="width:100%;height:46px;color:#e5484d" id="clr">Clear all local documents</button>
+<div class="set" style="display:block"><b>About Wordify</b><br><small>Mobile document editor. Documents are stored on this device (IndexedDB). DOCX/PDF export needs the libraries loaded once online. Export formats keep headings, lists, tables and images; DOCX/PDF page layout may differ slightly from the on-screen view.</small></div>`;
+ const m={sTh:['theme',v=>v],sF:['font',v=>v],sS:['size',v=>v],sL:['lh',v=>v],sA:['autosave',v=>v==='1']};
+ Object.entries(m).forEach(([id,[k,f]])=>$('#'+id).onchange=e=>{S[k]=f(e.target.value);saveS();applyTheme();toast('Saved')});
+ navigator.storage&&navigator.storage.estimate&&navigator.storage.estimate().then(s=>$('#stor').textContent=`Storage: ${(s.usage/1048576).toFixed(1)} MB of ${(s.quota/1048576).toFixed(0)} MB`);
+ $('#clr').onclick=async()=>{if(confirm('Delete ALL documents on this device? This cannot be undone.')){const a=await dbAll();for(const d of a)await dbDel(d.id);toast('All documents cleared')}}}
+/* ---- boot ---- */
+dbp.then(async()=>{showTab('fmt');go('home');const last=localStorage.getItem('wf_last');
+ if((await dbAll()).length===0)await dbPut({id:uid(),name:'Welcome to Wordify',html:'<h1>Welcome to Wordify</h1><p>Type here, then try <b>bold</b>, a table from <i>Insert</i>, or export from <i>Tools</i>.</p>',created:Date.now(),modified:Date.now()}),renderHome()})
+ .catch(e=>toast('Storage unavailable: '+e.message));
+if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script></body></html>
